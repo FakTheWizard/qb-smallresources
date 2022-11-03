@@ -4,27 +4,13 @@ Config.MaxHeight = 5.0
 Config.MaxLength = 5.0
 Config.DamageNeeded = 100.0
 Config.IdleCamera = true
-Config.EnableProne = true
+Config.EnableProne = false
 Config.JointEffectTime = 60
 Config.RemoveWeaponDrops = true
 Config.RemoveWeaponDropsTimer = 25
 Config.DefaultPrice = 20 -- Default price for the carwash
 Config.DirtLevel = 0.1 -- Threshold for the dirt level to be counted as dirty
 Config.DisableAmbience = false -- Disabled distance sirens, distance car alarms, etc
-
-Config.Disable = {
-    disableHudComponents = {1, 2, 3, 4, 7, 9, 13, 14, 19, 20, 21, 22}, -- Hud Components: https://docs.fivem.net/natives/?_0x6806C51AD12B83B8
-    disableControls = {37}, -- Controls: https://docs.fivem.net/docs/game-references/controls/
-    displayAmmo = true -- false disables ammo display
-}
-
-Config.Density = {
-    ['parked'] = 0.8,
-    ['vehicle'] = 0.8,
-    ['multiplier'] = 0.8,
-    ['peds'] = 0.8,
-    ['scenario'] = 0.8,
-}
 
 ConsumablesEat = {
     ["sandwich"] = math.random(35, 54),
@@ -178,3 +164,6 @@ Config.CarWash = { -- carwash
         ["coords"] = vector3(-699.62, -932.7, 19.01),
     }
 }
+
+Config.Stations = {'RADIO_01_CLASS_ROCK', 'RADIO_02_POP', 'RADIO_04_PUNK', 'RADIO_05_TALK_01', 'RADIO_06_COUNTRY', 'RADIO_07_DANCE_01', 'RADIO_08_MEXICAN', 'RADIO_09_HIPHOP_OLD', 'RADIO_11_TALK_02', 'RADIO_12_REGGAE', 'RADIO_13_JAZZ', 'RADIO_14_DANCE_02', 'RADIO_15_MOTOWN', 'RADIO_16_SILVERLAKE', 'RADIO_17_FUNK', 'RADIO_18_90S_ROCK', 'RADIO_20_THELAB', 'RADIO_21_DLC_XM17', 'RADIO_22_DLC_BATTLE_MIX1_RADIO', 'RADIO_23_DLC_XM19_RADIO', 'RADIO_27_DLC_PRHEI4', 'RADIO_34_DLC_HEI4_KULT', 'RADIO_35_DLC_HEI4_MLR', 'RADIO_36_AUDIOPLAYER', 'RADIO_37_MOTOMAMI', 'RADIO_11_TALK_02',}
+

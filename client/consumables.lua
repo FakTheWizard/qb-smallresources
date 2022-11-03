@@ -1,6 +1,5 @@
 -- Variables
 
-local QBCore = exports['qb-core']:GetCoreObject()
 local alcoholCount = 0
 local ParachuteEquiped = false
 local currentVest = nil
@@ -9,20 +8,19 @@ local healing = false
 
 -- Functions
 
-local function loadAnimDict(dict)
-    if HasAnimDictLoaded(dict) then return end
-    RequestAnimDict(dict)
-    while not HasAnimDictLoaded(dict) do
-        Wait(10)
+function loadAnimDict(dict)
+    while (not HasAnimDictLoaded(dict)) do
+        RequestAnimDict(dict)
+        Wait(5)
     end
 end
 
-local function EquipParachuteAnim()
+function EquipParachuteAnim()
     loadAnimDict("clothingshirt")
-    TaskPlayAnim(PlayerPedId(), "clothingshirt", "try_shirt_positive_d", 8.0, 1.0, -1, 49, 0, false, false, false)
+    TaskPlayAnim(PlayerPedId(), "clothingshirt", "try_shirt_positive_d", 8.0, 1.0, -1, 49, 0, 0, 0, 0)
 end
 
-local function HealOxy()
+function HealOxy()
     if not healing then
         healing = true
     else
@@ -32,24 +30,13 @@ local function HealOxy()
     local count = 9
     while count > 0 do
         Wait(1000)
-        count -= 1
+        count = count - 1
         SetEntityHealth(PlayerPedId(), GetEntityHealth(PlayerPedId()) + 6)
     end
     healing = false
 end
 
-local function TrevorEffect()
-    StartScreenEffect("DrugsTrevorClownsFightIn", 3.0, 0)
-    Wait(3000)
-    StartScreenEffect("DrugsTrevorClownsFight", 3.0, 0)
-    Wait(3000)
-	StartScreenEffect("DrugsTrevorClownsFightOut", 3.0, 0)
-	StopScreenEffect("DrugsTrevorClownsFight")
-	StopScreenEffect("DrugsTrevorClownsFightIn")
-	StopScreenEffect("DrugsTrevorClownsFightOut")
-end
-
-local function MethBagEffect()
+function MethBagEffect()
     local startStamina = 8
     TrevorEffect()
     SetRunSprintMultiplierForPlayer(PlayerId(), 1.49)
@@ -66,12 +53,23 @@ local function MethBagEffect()
     SetRunSprintMultiplierForPlayer(PlayerId(), 1.0)
 end
 
-local function EcstasyEffect()
+function TrevorEffect()
+    StartScreenEffect("DrugsTrevorClownsFightIn", 3.0, 0)
+    Wait(3000)
+    StartScreenEffect("DrugsTrevorClownsFight", 3.0, 0)
+    Wait(3000)
+	StartScreenEffect("DrugsTrevorClownsFightOut", 3.0, 0)
+	StopScreenEffect("DrugsTrevorClownsFight")
+	StopScreenEffect("DrugsTrevorClownsFightIn")
+	StopScreenEffect("DrugsTrevorClownsFightOut")
+end
+
+function EcstasyEffect()
     local startStamina = 30
     SetFlash(0, 0, 500, 7000, 500)
     while startStamina > 0 do
         Wait(1000)
-        startStamina -= 1
+        startStamina = startStamina - 1
         RestorePlayerStamina(PlayerId(), 1.0)
         if math.random(1, 100) < 51 then
             SetFlash(0, 0, 500, 7000, 500)
@@ -79,11 +77,60 @@ local function EcstasyEffect()
         end
     end
     if IsPedRunning(PlayerPedId()) then
-        SetPedToRagdoll(PlayerPedId(), math.random(1000, 3000), math.random(1000, 3000), 3, false, false, false)
+        SetPedToRagdoll(PlayerPedId(), math.random(1000, 3000), math.random(1000, 3000), 3, 0, 0, 0)
     end
 end
 
-local function AlienEffect()
+function CrackBaggyEffect()
+    local startStamina = 8
+    local ped = PlayerPedId()
+    AlienEffect()
+    SetRunSprintMultiplierForPlayer(PlayerId(), 1.3)
+    while startStamina > 0 do
+        Wait(1000)
+        if math.random(1, 100) < 10 then
+            RestorePlayerStamina(PlayerId(), 1.0)
+        end
+        startStamina = startStamina - 1
+        if math.random(1, 100) < 60 and IsPedRunning(ped) then
+            SetPedToRagdoll(ped, math.random(1000, 2000), math.random(1000, 2000), 3, 0, 0, 0)
+        end
+        if math.random(1, 100) < 51 then
+            AlienEffect()
+        end
+    end
+    if IsPedRunning(ped) then
+        SetPedToRagdoll(ped, math.random(1000, 3000), math.random(1000, 3000), 3, 0, 0, 0)
+    end
+    SetRunSprintMultiplierForPlayer(PlayerId(), 1.0)
+end
+
+function CokeBaggyEffect()
+    local startStamina = 20
+    local ped = PlayerPedId()
+    AlienEffect()
+    SetRunSprintMultiplierForPlayer(PlayerId(), 1.1)
+    while startStamina > 0 do
+        Wait(1000)
+        if math.random(1, 100) < 20 then
+            RestorePlayerStamina(PlayerId(), 1.0)
+        end
+        startStamina = startStamina - 1
+        if math.random(1, 100) < 10 and IsPedRunning(ped) then
+            SetPedToRagdoll(ped, math.random(1000, 3000), math.random(1000, 3000), 3, 0, 0, 0)
+        end
+        if math.random(1, 300) < 10 then
+            AlienEffect()
+            Wait(math.random(3000, 6000))
+        end
+    end
+    if IsPedRunning(ped) then
+        SetPedToRagdoll(ped, math.random(1000, 3000), math.random(1000, 3000), 3, 0, 0, 0)
+    end
+    SetRunSprintMultiplierForPlayer(PlayerId(), 1.0)
+end
+
+function AlienEffect()
     StartScreenEffect("DrugsMichaelAliensFightIn", 3.0, 0)
     Wait(math.random(5000, 8000))
     StartScreenEffect("DrugsMichaelAliensFight", 3.0, 0)
@@ -94,60 +141,89 @@ local function AlienEffect()
     StopScreenEffect("DrugsMichaelAliensFightOut")
 end
 
-local function CrackBaggyEffect()
-    local startStamina = 8
-    local ped = PlayerPedId()
-    AlienEffect()
-    SetRunSprintMultiplierForPlayer(PlayerId(), 1.3)
-    while startStamina > 0 do
-        Wait(1000)
-        if math.random(1, 100) < 10 then
-            RestorePlayerStamina(PlayerId(), 1.0)
-        end
-        startStamina -= 1
-        if math.random(1, 100) < 60 and IsPedRunning(ped) then
-            SetPedToRagdoll(ped, math.random(1000, 2000), math.random(1000, 2000), 3, false, false, false)
-        end
-        if math.random(1, 100) < 51 then
-            AlienEffect()
-        end
-    end
-    if IsPedRunning(ped) then
-        SetPedToRagdoll(ped, math.random(1000, 3000), math.random(1000, 3000), 3, false, false, false)
-    end
-    SetRunSprintMultiplierForPlayer(PlayerId(), 1.0)
-end
-
-local function CokeBaggyEffect()
-    local startStamina = 20
-    local ped = PlayerPedId()
-    AlienEffect()
-    SetRunSprintMultiplierForPlayer(PlayerId(), 1.1)
-    while startStamina > 0 do
-        Wait(1000)
-        if math.random(1, 100) < 20 then
-            RestorePlayerStamina(PlayerId(), 1.0)
-        end
-        startStamina -= 1
-        if math.random(1, 100) < 10 and IsPedRunning(ped) then
-            SetPedToRagdoll(ped, math.random(1000, 3000), math.random(1000, 3000), 3, false, false, false)
-        end
-        if math.random(1, 300) < 10 then
-            AlienEffect()
-            Wait(math.random(3000, 6000))
-        end
-    end
-    if IsPedRunning(ped) then
-        SetPedToRagdoll(ped, math.random(1000, 3000), math.random(1000, 3000), 3, false, false, false)
-    end
-    SetRunSprintMultiplierForPlayer(PlayerId(), 1.0)
-end
-
 -- Events
 
-RegisterNetEvent('consumables:client:Eat', function(itemName)
-    TriggerEvent('animations:client:EmoteCommandStart', {"eat"})
-    QBCore.Functions.Progressbar("eat_something", "Eating..", 5000, false, true, {
+RegisterNetEvent('consumables:client:Whiskey', function(itemName)
+    TriggerEvent('animations:client:EmoteCommandStart', {"Whiskey"})
+    QBCore.Functions.Progressbar("snort_coke", "Drinking Whiskey", math.random(3000, 6000), false, true, {
+        disableMovement = false,
+        disableCarMovement = false,
+        disableMouse = false,
+        disableCombat = true,
+    }, {}, {}, {}, function() -- Done
+        TriggerEvent('animations:client:EmoteCommandStart', {"c"})
+        TriggerEvent("inventory:client:ItemBox", QBCore.Shared.Items[itemName], "remove")
+        TriggerServerEvent("QBCore:Server:RemoveItem", itemName, 1)
+        TriggerServerEvent("QBCore:Server:SetMetaData", "thirst", QBCore.Functions.GetPlayerData().metadata["thirst"] + ConsumeablesAlcohol[itemName])
+        alcoholCount = alcoholCount + 1
+        if alcoholCount > 1 and alcoholCount < 4 then
+            TriggerEvent("evidence:client:SetStatus", "alcohol", 200)
+        elseif alcoholCount >= 4 then
+            TriggerEvent("evidence:client:SetStatus", "heavyalcohol", 200)
+            TriggerEvent('consumables:client:setPedDrunk', 1.0) 
+        end
+
+    end, function() -- Cancel
+        TriggerEvent('animations:client:EmoteCommandStart', {"c"})
+        QBCore.Functions.Notify("Cancelled..", "error")
+    end)
+end)
+
+RegisterNetEvent('consumables:client:beer', function(itemName)
+    TriggerEvent('animations:client:EmoteCommandStart', {"beer"})
+    QBCore.Functions.Progressbar("snort_coke", "Drinking Beer", math.random(3000, 6000), false, true, {
+        disableMovement = false,
+        disableCarMovement = false,
+        disableMouse = false,
+        disableCombat = true,
+    }, {}, {}, {}, function() -- Done
+        TriggerEvent('animations:client:EmoteCommandStart', {"c"})
+        TriggerEvent("inventory:client:ItemBox", QBCore.Shared.Items[itemName], "remove")
+        TriggerServerEvent("QBCore:Server:RemoveItem", itemName, 1)
+        TriggerServerEvent("QBCore:Server:SetMetaData", "thirst", QBCore.Functions.GetPlayerData().metadata["thirst"] + ConsumeablesAlcohol[itemName])
+        alcoholCount = alcoholCount + 1
+        if alcoholCount > 1 and alcoholCount < 4 then
+            TriggerEvent("evidence:client:SetStatus", "alcohol", 200)
+        elseif alcoholCount >= 4 then
+            TriggerEvent("evidence:client:SetStatus", "heavyalcohol", 200)
+            TriggerEvent('consumables:client:setPedDrunk', 1.0) 
+        end
+
+    end, function() -- Cancel
+        TriggerEvent('animations:client:EmoteCommandStart', {"c"})
+        QBCore.Functions.Notify("Cancelled..", "error")
+    end)
+end)
+
+RegisterNetEvent('consumables:client:vodka', function(itemName)
+    TriggerEvent('animations:client:EmoteCommandStart', {"drink"})
+    QBCore.Functions.Progressbar("snort_coke", "Drinking Vodka", math.random(3000, 6000), false, true, {
+        disableMovement = false,
+        disableCarMovement = false,
+        disableMouse = false,
+        disableCombat = true,
+    }, {}, {}, {}, function() -- Done
+        TriggerEvent('animations:client:EmoteCommandStart', {"c"})
+        TriggerEvent("inventory:client:ItemBox", QBCore.Shared.Items[itemName], "remove")
+        TriggerServerEvent("QBCore:Server:RemoveItem", itemName, 1)
+        TriggerServerEvent("QBCore:Server:SetMetaData", "thirst", QBCore.Functions.GetPlayerData().metadata["thirst"] + ConsumeablesAlcohol[itemName])
+        alcoholCount = alcoholCount + 1
+        if alcoholCount > 1 and alcoholCount < 4 then
+            TriggerEvent("evidence:client:SetStatus", "alcohol", 200)
+        elseif alcoholCount >= 4 then
+            TriggerEvent("evidence:client:SetStatus", "heavyalcohol", 200)
+            TriggerEvent('consumables:client:setPedDrunk', 1.0) 
+        end
+
+    end, function() -- Cancel
+        TriggerEvent('animations:client:EmoteCommandStart', {"c"})
+        QBCore.Functions.Notify("Cancelled..", "error")
+    end)
+end)
+
+RegisterNetEvent('consumables:client:sandwich', function(itemName)
+    TriggerEvent('animations:client:EmoteCommandStart', {"sandwich"})
+    QBCore.Functions.Progressbar("eat_something", "Eating Sandwich", 5000, false, true, {
         disableMovement = false,
         disableCarMovement = false,
 		disableMouse = false,
@@ -155,8 +231,81 @@ RegisterNetEvent('consumables:client:Eat', function(itemName)
     }, {}, {}, {}, function() -- Done
         TriggerEvent("inventory:client:ItemBox", QBCore.Shared.Items[itemName], "remove")
         TriggerEvent('animations:client:EmoteCommandStart', {"c"})
-        TriggerServerEvent("consumables:server:addHunger", QBCore.Functions.GetPlayerData().metadata["hunger"] + ConsumablesEat[itemName])
+        TriggerServerEvent("QBCore:Server:SetMetaData", "hunger", QBCore.Functions.GetPlayerData().metadata["hunger"] + ConsumeablesEat[itemName])
         TriggerServerEvent('hud:server:RelieveStress', math.random(2, 4))
+    end)
+end)
+
+RegisterNetEvent('consumables:client:twerks_candy', function(itemName)
+    TriggerEvent('animations:client:EmoteCommandStart', {"egobar"})
+    QBCore.Functions.Progressbar("eat_something", "Eating Twerksbar", 5000, false, true, {
+        disableMovement = false,
+        disableCarMovement = false,
+		disableMouse = false,
+		disableCombat = true,
+    }, {}, {}, {}, function() -- Done
+        TriggerEvent("inventory:client:ItemBox", QBCore.Shared.Items[itemName], "remove")
+        TriggerEvent('animations:client:EmoteCommandStart', {"c"})
+        TriggerServerEvent("QBCore:Server:SetMetaData", "hunger", QBCore.Functions.GetPlayerData().metadata["hunger"] + ConsumeablesEat[itemName])
+        TriggerServerEvent('hud:server:RelieveStress', math.random(2, 4))
+    end)
+end)
+
+RegisterNetEvent('consumables:client:snikkel_candy', function(itemName)
+    TriggerEvent('animations:client:EmoteCommandStart', {"egobar"})
+    QBCore.Functions.Progressbar("eat_something", "Eating Snikkelbar", 5000, false, true, {
+        disableMovement = false,
+        disableCarMovement = false,
+		disableMouse = false,
+		disableCombat = true,
+    }, {}, {}, {}, function() -- Done
+        TriggerEvent("inventory:client:ItemBox", QBCore.Shared.Items[itemName], "remove")
+        TriggerEvent('animations:client:EmoteCommandStart', {"c"})
+        TriggerServerEvent("QBCore:Server:SetMetaData", "hunger", QBCore.Functions.GetPlayerData().metadata["hunger"] + ConsumeablesEat[itemName])
+        TriggerServerEvent('hud:server:RelieveStress', math.random(2, 4))
+    end)
+end)
+
+RegisterNetEvent('consumables:client:tosti', function(itemName)
+    TriggerEvent('animations:client:EmoteCommandStart', {"sandwich"})
+    QBCore.Functions.Progressbar("eat_something", "Eating GrilledCheese", 5000, false, true, {
+        disableMovement = false,
+        disableCarMovement = false,
+		disableMouse = false,
+		disableCombat = true,
+    }, {}, {}, {}, function() -- Done
+        TriggerEvent("inventory:client:ItemBox", QBCore.Shared.Items[itemName], "remove")
+        TriggerEvent('animations:client:EmoteCommandStart', {"c"})
+        TriggerServerEvent("QBCore:Server:SetMetaData", "hunger", QBCore.Functions.GetPlayerData().metadata["hunger"] + ConsumeablesEat[itemName])
+        TriggerServerEvent('hud:server:RelieveStress', math.random(2, 4))
+    end)
+end)
+
+RegisterNetEvent('consumables:client:coffee', function(itemName)
+    TriggerEvent('animations:client:EmoteCommandStart', {"coffee"})
+    QBCore.Functions.Progressbar("drink_something", "Drinking Coffee", 5000, false, true, {
+        disableMovement = false,
+        disableCarMovement = false,
+		disableMouse = false,
+		disableCombat = true,
+    }, {}, {}, {}, function() -- Done
+        TriggerEvent("inventory:client:ItemBox", QBCore.Shared.Items[itemName], "remove")
+        TriggerEvent('animations:client:EmoteCommandStart', {"c"})
+        TriggerServerEvent("QBCore:Server:SetMetaData", "thirst", QBCore.Functions.GetPlayerData().metadata["thirst"] + ConsumeablesDrink[itemName])
+    end)
+end)
+
+RegisterNetEvent('consumables:client:kurkakola', function(itemName)
+    TriggerEvent('animations:client:EmoteCommandStart', {"soda"})
+    QBCore.Functions.Progressbar("drink_something", "Drinking cola", 5000, false, true, {
+        disableMovement = false,
+        disableCarMovement = false,
+		disableMouse = false,
+		disableCombat = true,
+    }, {}, {}, {}, function() -- Done
+        TriggerEvent("inventory:client:ItemBox", QBCore.Shared.Items[itemName], "remove")
+        TriggerEvent('animations:client:EmoteCommandStart', {"c"})
+        TriggerServerEvent("QBCore:Server:SetMetaData", "thirst", QBCore.Functions.GetPlayerData().metadata["thirst"] + ConsumeablesDrink[itemName])
     end)
 end)
 
@@ -170,33 +319,7 @@ RegisterNetEvent('consumables:client:Drink', function(itemName)
     }, {}, {}, {}, function() -- Done
         TriggerEvent("inventory:client:ItemBox", QBCore.Shared.Items[itemName], "remove")
         TriggerEvent('animations:client:EmoteCommandStart', {"c"})
-        TriggerServerEvent("consumables:server:addThirst", QBCore.Functions.GetPlayerData().metadata["thirst"] + ConsumablesDrink[itemName])
-    end)
-end)
-
-RegisterNetEvent('consumables:client:DrinkAlcohol', function(itemName)
-    TriggerEvent('animations:client:EmoteCommandStart', {"drink"})
-    QBCore.Functions.Progressbar("snort_coke", "Drinking liquor..", math.random(3000, 6000), false, true, {
-        disableMovement = false,
-        disableCarMovement = false,
-        disableMouse = false,
-        disableCombat = true,
-    }, {}, {}, {}, function() -- Done
-        TriggerEvent('animations:client:EmoteCommandStart', {"c"})
-        TriggerEvent("inventory:client:ItemBox", QBCore.Shared.Items[itemName], "remove")
-        TriggerServerEvent("consumables:server:drinkAlcohol", itemName)
-        TriggerServerEvent("consumables:server:addThirst", QBCore.Functions.GetPlayerData().metadata["thirst"] + ConsumablesAlcohol[itemName])
-        TriggerServerEvent('hud:server:RelieveStress', math.random(2, 4))
-        alcoholCount += 1
-        if alcoholCount > 1 and alcoholCount < 4 then
-            TriggerEvent("evidence:client:SetStatus", "alcohol", 200)
-        elseif alcoholCount >= 4 then
-            TriggerEvent("evidence:client:SetStatus", "heavyalcohol", 200)
-        end
-
-    end, function() -- Cancel
-        TriggerEvent('animations:client:EmoteCommandStart', {"c"})
-        QBCore.Functions.Notify("Cancelled..", "error")
+        TriggerServerEvent("QBCore:Server:SetMetaData", "thirst", QBCore.Functions.GetPlayerData().metadata["thirst"] + ConsumeablesDrink[itemName])
     end)
 end)
 
@@ -213,7 +336,7 @@ RegisterNetEvent('consumables:client:Cokebaggy', function()
         flags = 49,
     }, {}, {}, function() -- Done
         StopAnimTask(ped, "switch@trevor@trev_smoking_meth", "trev_smoking_meth_loop", 1.0)
-        TriggerServerEvent("consumables:server:useCokeBaggy")
+        TriggerServerEvent("QBCore:Server:RemoveItem", "cokebaggy", 1)
         TriggerEvent("inventory:client:ItemBox", QBCore.Shared.Items["cokebaggy"], "remove")
         TriggerEvent("evidence:client:SetStatus", "widepupils", 200)
         CokeBaggyEffect()
@@ -236,7 +359,7 @@ RegisterNetEvent('consumables:client:Crackbaggy', function()
         flags = 49,
     }, {}, {}, function() -- Done
         StopAnimTask(ped, "switch@trevor@trev_smoking_meth", "trev_smoking_meth_loop", 1.0)
-        TriggerServerEvent("consumables:server:useCrackBaggy")
+        TriggerServerEvent("QBCore:Server:RemoveItem", "crack_baggy", 1)
         TriggerEvent("inventory:client:ItemBox", QBCore.Shared.Items["crack_baggy"], "remove")
         TriggerEvent("evidence:client:SetStatus", "widepupils", 300)
         CrackBaggyEffect()
@@ -258,7 +381,7 @@ RegisterNetEvent('consumables:client:EcstasyBaggy', function()
 		flags = 49,
     }, {}, {}, function() -- Done
         StopAnimTask(PlayerPedId(), "mp_suicide", "pill", 1.0)
-        TriggerServerEvent("consumables:server:useXTCBaggy")
+        TriggerServerEvent("QBCore:Server:RemoveItem", "xtcbaggy", 1)
         TriggerEvent("inventory:client:ItemBox", QBCore.Shared.Items["xtcbaggy"], "remove")
         EcstasyEffect()
     end, function() -- Cancel
@@ -268,24 +391,25 @@ RegisterNetEvent('consumables:client:EcstasyBaggy', function()
 end)
 
 RegisterNetEvent('consumables:client:oxy', function()
-    QBCore.Functions.Progressbar("use_oxy", "Healing", 2000, false, true, {
+    QBCore.Functions.Progressbar("use_oxy", "Popping Oxy", 2000, false, true, {
         disableMovement = false,
         disableCarMovement = false,
-		disableMouse = false,
-		disableCombat = true,
+        disableMouse = false,
+        disableCombat = true,
     }, {
-		animDict = "mp_suicide",
-		anim = "pill",
-		flags = 49,
+        animDict = "mp_suicide",
+        anim = "pill",
+        flags = 49,
     }, {}, {}, function() -- Done
         StopAnimTask(PlayerPedId(), "mp_suicide", "pill", 1.0)
-        TriggerServerEvent("consumables:server:useOxy")
+        TriggerServerEvent("QBCore:Server:RemoveItem", "oxy", 1)
         TriggerEvent("inventory:client:ItemBox", QBCore.Shared.Items["oxy"], "remove")
+        AddArmourToPed(PlayerPedId(), math.random(5,20))
         ClearPedBloodDamage(PlayerPedId())
-		HealOxy()
+        HealOxy()
     end, function() -- Cancel
         StopAnimTask(PlayerPedId(), "mp_suicide", "pill", 1.0)
-        QBCore.Functions.Notify("Canceled", "error")
+        exports['okokNotify']:Alert('Status', 'Cancelled!', 5000, 'error')
     end)
 end)
 
@@ -301,7 +425,7 @@ RegisterNetEvent('consumables:client:meth', function()
         flags = 49,
     }, {}, {}, function() -- Done
         StopAnimTask(PlayerPedId(), "switch@trevor@trev_smoking_meth", "trev_smoking_meth_loop", 1.0)
-        TriggerServerEvent("consumables:server:useMeth")
+        TriggerServerEvent("QBCore:Server:RemoveItem", "meth", 1)
         TriggerEvent("inventory:client:ItemBox", QBCore.Shared.Items["meth"], "remove")
         TriggerEvent("evidence:client:SetStatus", "widepupils", 300)
 		TriggerEvent("evidence:client:SetStatus", "agitated", 300)
@@ -332,7 +456,7 @@ end)
 
 RegisterNetEvent('consumables:client:UseParachute', function()
     EquipParachuteAnim()
-    QBCore.Functions.Progressbar("use_parachute", "Putting on parachute..", 5000, false, true, {
+    QBCore.Functions.Progressbar("use_parachute", "parachute using..", 5000, false, true, {
         disableMovement = false,
         disableCarMovement = false,
 		disableMouse = false,
@@ -340,7 +464,7 @@ RegisterNetEvent('consumables:client:UseParachute', function()
     }, {}, {}, {}, function() -- Done
         local ped = PlayerPedId()
         TriggerEvent("inventory:client:ItemBox", QBCore.Shared.Items["parachute"], "remove")
-        GiveWeaponToPed(ped, `GADGET_PARACHUTE`, 1, false, false)
+        GiveWeaponToPed(ped, `GADGET_PARACHUTE`, 1, false)
         local ParachuteData = {
             outfitData = {
                 ["bag"]   = { item = 7, texture = 0},  -- Adding Parachute Clothing
@@ -348,7 +472,7 @@ RegisterNetEvent('consumables:client:UseParachute', function()
         }
         TriggerEvent('qb-clothing:client:loadOutfit', ParachuteData)
         ParachuteEquiped = true
-        TaskPlayAnim(ped, "clothingshirt", "exit", 8.0, 1.0, -1, 49, 0, false, false, false)
+        TaskPlayAnim(ped, "clothingshirt", "exit", 8.0, 1.0, -1, 49, 0, 0, 0, 0)
     end)
 end)
 
@@ -369,7 +493,7 @@ RegisterNetEvent('consumables:client:ResetParachute', function()
                 }
             }
             TriggerEvent('qb-clothing:client:loadOutfit', ParachuteRemoveData)
-            TaskPlayAnim(ped, "clothingshirt", "exit", 8.0, 1.0, -1, 49, 0, false, false, false)
+            TaskPlayAnim(ped, "clothingshirt", "exit", 8.0, 1.0, -1, 49, 0, 0, 0, 0)
             TriggerServerEvent("qb-smallpenis:server:AddParachute")
             ParachuteEquiped = false
         end)
@@ -379,6 +503,7 @@ RegisterNetEvent('consumables:client:ResetParachute', function()
 end)
 
 RegisterNetEvent('consumables:client:UseArmor', function()
+    TriggerEvent('animations:client:EmoteCommandStart', {"shakeoff"})
     if GetPedArmour(PlayerPedId()) >= 75 then QBCore.Functions.Notify('You already have enough armor on!', 'error') return end
     QBCore.Functions.Progressbar("use_armor", "Putting on the body armour..", 5000, false, true, {
         disableMovement = false,
@@ -388,12 +513,13 @@ RegisterNetEvent('consumables:client:UseArmor', function()
     }, {}, {}, {}, function() -- Done
         TriggerEvent("inventory:client:ItemBox", QBCore.Shared.Items["armor"], "remove")
         TriggerServerEvent('hospital:server:SetArmor', 75)
-        TriggerServerEvent("consumables:server:useArmor")
+        TriggerServerEvent("QBCore:Server:RemoveItem", "armor", 1)
         SetPedArmour(PlayerPedId(), 75)
     end)
 end)
 
 RegisterNetEvent('consumables:client:UseHeavyArmor', function()
+    TriggerEvent('animations:client:EmoteCommandStart', {"shakeoff"})
     if GetPedArmour(PlayerPedId()) == 100 then QBCore.Functions.Notify('You already have enough armor on!', 'error') return end
     local ped = PlayerPedId()
     local PlayerData = QBCore.Functions.GetPlayerData()
@@ -417,7 +543,7 @@ RegisterNetEvent('consumables:client:UseHeavyArmor', function()
             SetPedComponentVariation(ped, 9, 30, 0, 2)
         end
         TriggerEvent("inventory:client:ItemBox", QBCore.Shared.Items["heavyarmor"], "remove")
-        TriggerServerEvent("consumables:server:useHeavyArmor")
+        TriggerServerEvent("QBCore:Server:RemoveItem", "heavyarmor", 1)
         SetPedArmour(ped, 100)
     end)
 end)
@@ -434,7 +560,7 @@ RegisterNetEvent('consumables:client:ResetArmor', function()
             SetPedComponentVariation(ped, 9, currentVest, currentVestTexture, 2)
             SetPedArmour(ped, 0)
             TriggerEvent("inventory:client:ItemBox", QBCore.Shared.Items["heavyarmor"], "add")
-            TriggerServerEvent('consumables:server:resetArmor')
+            TriggerServerEvent("QBCore:Server:AddItem", "heavyarmor", 1)
         end)
     else
         QBCore.Functions.Notify("You\'re not wearing a vest..", "error")
@@ -459,9 +585,44 @@ CreateThread(function()
         Wait(10)
         if alcoholCount > 0 then
             Wait(1000 * 60 * 15)
-            alcoholCount -= 1
+            alcoholCount = alcoholCount - 1
         else
             Wait(2000)
         end
     end
 end)
+
+RegisterNetEvent('consumables:client:setPedDrunk', function(shake)
+    local player = PlayerPedId()
+        Wait(3000)
+        SetTimecycleModifier('spectator5')
+        SetPedMotionBlur(playerPed, true)
+        SetTimecycleModifier("spectator5")
+        SetPedMovementClipset(GetPlayerPed(-1), 'MOVE_M@DRUNK@VERYDRUNK', true)
+        SetPedIsDrunk(GetPlayerPed(-1), true)
+        SetPedAccuracy(GetPlayerPed(-1), 0)
+        DoScreenFadeIn(1000)
+        if IsPedRunning(player) then
+            SetPedToRagdoll(player, math.random(1000, 2000), math.random(1000, 2000), 3, 0, 0, 0)
+        end
+        Wait(2000)
+        if (60 >= math.random(1,100)) and IsPedRunning(player) then
+            SetPedToRagdollWithFall(ped, 2500, 4000, 1, GetEntityForwardVector(ped), 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        end            
+        Wait(5*60000) -- 5 mins
+        if IsPedRunning(player) then
+            SetPedToRagdoll(player, math.random(1000, 2000), math.random(1000, 2000), 3, 0, 0, 0)
+        end
+        Wait(2000)
+        if (30 >= math.random(1,100)) and IsPedRunning(player) then
+            SetPedToRagdollWithFall(ped, 1500, 3000, 1, GetEntityForwardVector(ped), 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        end
+        DoScreenFadeOut(1000)
+        Wait(1000)
+        DoScreenFadeIn(1000)
+        ClearTimecycleModifier()
+        ResetScenarioTypesEnabled()
+        ResetPedMovementClipset(GetPlayerPed(-1), 0)
+        SetPedIsDrunk(GetPlayerPed(-1), false)
+        SetPedMotionBlur(GetPlayerPed(-1), false)
+    end)

@@ -1,13 +1,13 @@
 CreateThread(function()
-	while true do
-		for _, sctyp in next, Config.BlacklistedScenarios['TYPES'] do
-			SetScenarioTypeEnabled(sctyp, false)
-		end
-		for _, scgrp in next, Config.BlacklistedScenarios['GROUPS'] do
-			SetScenarioGroupEnabled(scgrp, false)
-		end
+    while true do
+        for _, sctyp in next, Config.BlacklistedScenarios['TYPES'] do
+            SetScenarioTypeEnabled(sctyp, false)
+        end
+        for _, scgrp in next, Config.BlacklistedScenarios['GROUPS'] do
+            SetScenarioGroupEnabled(scgrp, false)
+        end
 		Wait(10000)
-	end
+    end
 end)
 
 AddEventHandler("populationPedCreating", function(x, y, z)
@@ -17,10 +17,8 @@ AddEventHandler("populationPedCreating", function(x, y, z)
 end)
 
 CreateThread(function() -- all these should only need to be called once
-	if Config.DisableAmbience then
-		StartAudioScene("CHARACTER_CHANGE_IN_SKY_SCENE")
-	end
-	SetAudioFlag("PoliceScannerDisabled", true)
+    StartAudioScene("CHARACTER_CHANGE_IN_SKY_SCENE")
+    SetAudioFlag("PoliceScannerDisabled", true)
 	SetGarbageTrucks(false)
 	SetCreateRandomCops(false)
 	SetCreateRandomCopsNotOnScenarios(false)
@@ -36,16 +34,16 @@ CreateThread(function() -- all these should only need to be called once
 	RemoveVehiclesFromGeneratorsInArea(-724.46 - 300.0, -1444.03 - 300.0, 5.0 - 300.0, -724.46 + 300.0, -1444.03 + 300.0, 5.0 + 300.0) -- REMOVE CHOPPERS WOW
 end)
 
+
 CreateThread(function()
-	local sleep
 	while true do
-		sleep = 1000
+		Wait(1)
 		local ped = PlayerPedId()
-		if IsPedBeingStunned(ped, 0) then
-			sleep = 0
+		if IsPedBeingStunned(ped) then
 			SetPedMinGroundTimeForStungun(ped, math.random(4000, 7000))
+		else
+			Wait(1000)
 		end
-		Wait(sleep)
 	end
 end)
 
@@ -63,33 +61,93 @@ if Config.IdleCamera then --Disable Idle Cinamatic Cam
 end
 
 CreateThread(function()
-	local sleep
-	while true do
-		sleep = 500
-		local ped = PlayerPedId()
-		local weapon = GetSelectedPedWeapon(ped)
+    while true do
+        local ped = PlayerPedId()
+        local weapon = GetSelectedPedWeapon(ped)
 		if weapon ~= `WEAPON_UNARMED` then
 			if IsPedArmed(ped, 6) then
-				sleep = 0
 				DisableControlAction(1, 140, true)
 				DisableControlAction(1, 141, true)
 				DisableControlAction(1, 142, true)
 			end
 
-			if weapon == `WEAPON_FIREEXTINGUISHER` or weapon == `WEAPON_PETROLCAN` then
+			if weapon == `WEAPON_FIREEXTINGUISHER` or  weapon == `WEAPON_PETROLCAN` then
 				if IsPedShooting(ped) then
 					SetPedInfiniteAmmo(ped, true, `WEAPON_FIREEXTINGUISHER`)
 					SetPedInfiniteAmmo(ped, true, `WEAPON_PETROLCAN`)
 				end
 			end
+		else
+			Wait(500)
 		end
-		Wait(sleep)
-	end
+        Wait(7)
+    end
 end)
 
 CreateThread(function()
-	local pedPool = GetGamePool('CPed')
-	for _, v in pairs(pedPool) do
-		SetPedDropsWeaponsWhenDead(v, false)
-	end
+    local pedPool = GetGamePool('CPed')
+    for _, v in pairs(pedPool) do
+        SetPedDropsWeaponsWhenDead(v, false)
+    end
+    Wait(500)
+end)
+
+maxTaserCarts = 2 -- The amount of taser cartridges a person can have.
+
+     local taserCartsLeft = maxTaserCarts
+     
+     RegisterNetEvent("FillTaser")
+     AddEventHandler("FillTaser",function(source, args, rawCommand)
+         
+         QBCore.Functions.Progressbar("load_tazer", "Reloading Tazer..", 2000, false, true, {
+             disableMovement = false,
+             disableCarMovement = false,
+             disableMouse = false,
+             disableCombat = true,
+         }, {
+             animDict = "anim@weapons@pistol@singleshot_str",
+             anim = "reload_aim",
+             flags = 48,
+         }, {}, {}, function() -- Done
+         
+             
+             taserCartsLeft = maxTaserCarts
+             TriggerServerEvent("QBCore:Server:RemoveItem", "taserammo", 1)
+             TriggerEvent("inventory:client:ItemBox", QBCore.Shared.Items["taserammo"], "remove")
+             
+         end)
+     end)
+
+	 local taserModel = GetHashKey("WEAPON_STUNGUN")
+
+CreateThread(function()
+    while true do
+        Wait(0)
+        local ped = PlayerPedId()
+
+        if GetSelectedPedWeapon(ped) == taserModel then
+            if IsPedShooting(ped) then
+                DisplayAmmoThisFrame(true)
+                taserCartsLeft = taserCartsLeft - 1
+            end
+        end
+
+        if taserCartsLeft <= 0 then
+            if GetSelectedPedWeapon(ped) == taserModel then
+                SetPlayerCanDoDriveBy(ped, false)
+                DisablePlayerFiring(ped, true)
+                if IsControlJustReleased(0, 106) then
+                    QBCore.Functions.Notify("You need to reload your taser!", "error")
+                end
+            end
+        end
+
+        if longerTazeTime then
+            SetPedMinGroundTimeForStungun(ped, longerTazeSecTime * 1000)
+        end
+    end
+end)
+
+RegisterCommand('test', function()
+    TriggerEvent("FillTaser")
 end)

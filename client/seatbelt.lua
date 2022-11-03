@@ -68,8 +68,10 @@ CreateThread(function()
         if IsPedInAnyVehicle(PlayerPedId(), false) then
             sleep = 0
             if seatbeltOn or harnessOn then
-                DisableControlAction(0, 75, true)
-                DisableControlAction(27, 75, true)
+                if IsControlJustPressed(0, 75) then
+                    seatbeltOn = false
+                    harnessOn = false
+                end
             end
         else
             seatbeltOn = false
@@ -219,7 +221,7 @@ end)
 
 -- Events
 
-RegisterNetEvent('seatbelt:client:UseHarness', function(ItemData) -- On Item Use (registered server side)
+RegisterNetEvent('seatbelt:client:UseHarness', function(ItemData, updateInfo) -- On Item Use (registered server side)
     local ped = PlayerPedId()
     local inveh = IsPedInAnyVehicle(ped, false)
     local class = GetVehicleClass(GetVehiclePedIsUsing(ped))
@@ -234,26 +236,24 @@ RegisterNetEvent('seatbelt:client:UseHarness', function(ItemData) -- On Item Use
             }, {}, {}, {}, function()
                 LocalPlayer.state:set("inv_busy", false, true)
                 ToggleHarness()
-                TriggerServerEvent('equip:harness', ItemData)
+                if updateInfo then TriggerServerEvent('equip:harness', ItemData) end
             end)
-            harnessHp = ItemData.info.uses
-            harnessData = ItemData
-            TriggerEvent('hud:client:UpdateHarness', harnessHp)
+            if updateInfo then
+                harnessHp = ItemData.info.uses
+                harnessData = ItemData
+                TriggerEvent('hud:client:UpdateHarness', harnessHp)
+            end
         else
-            LocalPlayer.state:set("inv_busy", true, true)
-            QBCore.Functions.Progressbar("harness_equip", "Removing Race Harness", 5000, false, true, {
-                disableMovement = false,
-                disableCarMovement = false,
-                disableMouse = false,
-                disableCombat = true,
-            }, {}, {}, {}, function()
-                LocalPlayer.state:set("inv_busy", false, true)
-                ToggleHarness()
-            end)
+            harnessOn = false
+            ToggleSeatbelt()
         end
     else
         QBCore.Functions.Notify('You\'re not in a car.', 'error')
     end
+end)
+
+RegisterNetEvent('seatbelt:client:UseSeatbelt', function()
+    ToggleSeatbelt()
 end)
 
 -- Register Key
@@ -262,7 +262,10 @@ RegisterCommand('toggleseatbelt', function()
     if not IsPedInAnyVehicle(PlayerPedId(), false) or IsPauseMenuActive() then return end
     local class = GetVehicleClass(GetVehiclePedIsUsing(PlayerPedId()))
     if class == 8 or class == 13 or class == 14 then return end
-    ToggleSeatbelt()
+    local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
+    local plate = GetVehicleNumberPlateText(vehicle)
+
+    TriggerServerEvent('brazzers-harness:server:toggleBelt', plate)
 end, false)
 
 RegisterKeyMapping('toggleseatbelt', 'Toggle Seatbelt', 'keyboard', 'B')
